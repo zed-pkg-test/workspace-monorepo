@@ -1,0 +1,10 @@
+[package]
+org = "zedtest"
+name = "ws-core"
+version = "0.1.0"
+description = "Workspace member with no dependencies of its own."
+license = "MIT"
+
+[package.repository]
+vcs = "git"
+url = "https://github.com/zed-pkg-test/workspace-monorepo"

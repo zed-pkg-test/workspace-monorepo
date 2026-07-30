@@ -1,0 +1,22 @@
+[package]
+org = "zedtest"
+name = "workspace-monorepo"
+version = "0.1.0"
+description = "Workspace root: several independent packages in one repo."
+license = "MIT"
+
+[package.repository]
+vcs = "git"
+url = "https://github.com/zed-pkg-test/workspace-monorepo"
+
+# `members` are glob patterns, each selecting directories that carry their OWN
+# .zpkg.toml. This is the mechanism for "one repo, several packages" -- distinct
+# from [targets], which slices ONE package across languages.
+#
+# `zed install` from any member walks up to this root, resolves every member
+# against one store, writes one .zpkg.lock, and links member->member
+# dependencies straight to the member source directory instead of round-tripping
+# through the registry. So an edit in packages/core is visible to apps/cli
+# immediately, with no publish step in between.
+[workspace]
+members = ["packages/*", "apps/*"]

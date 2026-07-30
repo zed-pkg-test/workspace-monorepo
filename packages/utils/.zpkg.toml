@@ -1,0 +1,20 @@
+[package]
+org = "zedtest"
+name = "ws-utils"
+version = "0.1.0"
+description = "Workspace member depending on a sibling member, not the registry."
+license = "MIT"
+
+[package.repository]
+vcs = "git"
+url = "https://github.com/zed-pkg-test/workspace-monorepo"
+
+[install]
+dir = "zed_modules"
+adapter = "node"
+
+# Resolves to packages/core in this workspace, so it links by path. Published
+# outside the workspace, the same line resolves through the registry -- the
+# manifest does not change shape depending on where it is consumed.
+[dependencies]
+"zedtest/ws-core" = "^0.1.0"

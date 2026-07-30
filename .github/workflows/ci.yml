@@ -1,0 +1,166 @@
+name: workspace CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out this repo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: workspace-monorepo
+          persist-credentials: false
+
+      # zed-cli path-depends on ../zed-interfaces, so they must be siblings.
+      - name: Check out zed-cli
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: zed-pkg/zed-cli
+          path: zed-cli
+          persist-credentials: false
+      - name: Check out zed-interfaces
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: zed-pkg/zed-interfaces
+          path: zed-interfaces
+          persist-credentials: false
+
+      - name: Validate workflow
+        uses: docker://rhysd/actionlint@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667
+        with:
+          args: workspace-monorepo/.github/workflows/ci.yml
+
+      - name: Every member glob resolves to a directory with its own manifest
+        working-directory: workspace-monorepo
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import tomllib
+          from pathlib import Path
+
+          root = Path(".")
+          with (root / ".zpkg.toml").open("rb") as handle:
+              manifest = tomllib.load(handle)
+
+          patterns = manifest["workspace"]["members"]
+          assert patterns == ["packages/*", "apps/*"], patterns
+
+          found = {}
+          for pattern in patterns:
+              for directory in sorted(root.glob(pattern)):
+                  assert directory.is_dir(), directory
+                  member_manifest = directory / ".zpkg.toml"
+                  # Unlike a [targets] dir, a workspace member MUST carry its own
+                  # manifest -- that is what makes it a separate package.
+                  assert member_manifest.exists(), f"{directory}: no .zpkg.toml"
+                  with member_manifest.open("rb") as handle:
+                      package = tomllib.load(handle)["package"]
+                  found[f"{package['org']}/{package['name']}"] = directory
+
+          assert set(found) == {
+              "zedtest/ws-core",
+              "zedtest/ws-utils",
+              "zedtest/ws-cli",
+          }, sorted(found)
+          print("members:", sorted(found))
+          PY
+
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v6
+        with:
+          node-version: 22
+
+      - name: Build the zed CLI
+        run: cargo build --release --bin zed --manifest-path zed-cli/Cargo.toml
+
+      - name: Members resolve by path, transitively, with no registry
+        working-directory: workspace-monorepo/apps/cli
+        shell: bash
+        run: |
+          set -euo pipefail
+          ZED="$GITHUB_WORKSPACE/zed-cli/target/release/zed"
+          echo "ZED=$ZED" >> "$GITHUB_ENV"
+          # Deliberately an EMPTY registry: if anything resolves through it
+          # rather than through the workspace, this step fails.
+          mkdir -p "$RUNNER_TEMP/empty-reg"
+          "$ZED" install --registry "file://$RUNNER_TEMP/empty-reg" \
+            --home "$RUNNER_TEMP/home" 2>&1 | tee "$RUNNER_TEMP/install.log"
+
+          # ws-cli depends on ws-utils only; ws-core arrives transitively.
+          grep -q 'installed zedtest/ws-core@workspace' "$RUNNER_TEMP/install.log"
+          grep -q 'installed zedtest/ws-utils@workspace' "$RUNNER_TEMP/install.log"
+
+          # The @workspace version and the symlink target are the proof of a
+          # path link rather than a registry download.
+          test -L zed_modules/zedtest/ws-core
+          test -L zed_modules/zedtest/ws-utils
+          test "$(readlink zed_modules/zedtest/ws-core)" \
+             = "$GITHUB_WORKSPACE/workspace-monorepo/packages/core"
+
+      - name: KNOWN GAP - workspace members get no wiring and no paths entry
+        working-directory: workspace-monorepo/apps/cli
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Characterization, not endorsement. A registry install writes
+          # node_modules/@org/name links plus .zed/node_path; a workspace install
+          # writes neither, and paths.json comes back empty -- so a Node consumer
+          # inside a workspace cannot import what was just installed.
+          #
+          # When this is fixed, THIS STEP SHOULD FAIL. Update the fixture then;
+          # do not delete the check.
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          index = json.loads(Path(".zed/paths.json").read_text())
+          assert index["packages"] == [], (
+              f"paths.json now records {len(index['packages'])} package(s) -- "
+              "the gap is fixed; update this fixture to assert the real entries"
+          )
+          PY
+          test ! -e .zed/node_path
+          test ! -e node_modules/@zedtest/ws-utils
+          if node bin/cli.js > "$RUNNER_TEMP/unwired.log" 2>&1; then
+            echo "::error::the member resolved without wiring; the gap is fixed"
+            exit 1
+          fi
+          grep -q "Cannot find module '@zedtest/ws-utils'" "$RUNNER_TEMP/unwired.log"
+
+      - name: With wiring hoisted to the workspace root, the chain resolves
+        working-directory: workspace-monorepo
+        shell: bash
+        run: |
+          set -euo pipefail
+          # The wiring zed omits, added by hand -- at the ROOT, because Node
+          # resolves from a symlink's realpath and therefore searches upward from
+          # packages/utils/, never from apps/cli/. This is what a fixed adapter
+          # has to emit.
+          mkdir -p node_modules/@zedtest
+          ln -sfn ../../packages/core node_modules/@zedtest/ws-core
+          ln -sfn ../../packages/utils node_modules/@zedtest/ws-utils
+          node apps/cli/bin/cli.js | tee "$RUNNER_TEMP/wired.log"
+          grep -q 'OK: member -> member -> member resolved by path' "$RUNNER_TEMP/wired.log"
+
+      - name: Upload install diagnostics
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: workspace-install-logs
+          path: ${{ runner.temp }}/*.log
+          if-no-files-found: warn
+          retention-days: 7

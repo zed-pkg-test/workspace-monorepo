@@ -1,0 +1,24 @@
+[package]
+org = "zedtest"
+name = "ws-cli"
+version = "0.1.0"
+description = "Workspace member exposing an executable hoisted to zed_modules/.bin."
+license = "MIT"
+
+[package.repository]
+vcs = "git"
+url = "https://github.com/zed-pkg-test/workspace-monorepo"
+
+[install]
+dir = "zed_modules"
+adapter = "node"
+
+# Two hops: ws-utils depends on ws-core, so a transitive member link has to work
+# too, not just the direct one.
+[dependencies]
+"zedtest/ws-utils" = "^0.1.0"
+
+# On install this is hoisted into zed_modules/.bin/ and runnable as
+# `zed run ws-cli`.
+[bin]
+ws-cli = "bin/cli.js"

@@ -1,0 +1,7 @@
+{
+  "name": "@zedtest/ws-cli",
+  "version": "0.1.0",
+  "license": "MIT",
+  "private": true,
+  "bin": { "ws-cli": "bin/cli.js" }
+}
