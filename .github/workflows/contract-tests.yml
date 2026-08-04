@@ -1,0 +1,48 @@
+name: named workspace contract tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: workspace-contract-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  contracts:
+    name: 19 topology tests and 6 runtime tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - name: Check out the workspace fixture
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          show-progress: false
+
+      - name: Install the declared Node runtime
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v6.1.0
+        with:
+          node-version: 22
+
+      - name: Run manifest and dependency-graph contracts
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s tests -p 'test_*.py' -v
+
+      - name: Run isolated workspace runtime contracts
+        run: |
+          set -euo pipefail
+          node --test tests/*.test.cjs
+
+      - name: Prove tests left the fixture checkout unchanged
+        run: |
+          set -euo pipefail
+          git diff --exit-code
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
