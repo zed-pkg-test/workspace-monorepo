@@ -18,7 +18,7 @@ env:
 
 jobs:
   contracts:
-    name: 19 topology tests and 6 runtime tests
+    name: 19 topology tests and 7 runtime tests
     runs-on: ubuntu-24.04
     timeout-minutes: 8
     steps:
