@@ -97,6 +97,29 @@ test("hoisted links resolve to the intended member directories", (t) => {
   );
 });
 
+test("consumer-local links expose the transitive realpath boundary", (t) => {
+  const staged = stageWorkspace({ linkCore: false, linkUtils: false });
+  t.after(() => fs.rmSync(staged, { recursive: true, force: true }));
+
+  const scope = path.join(staged, "apps", "cli", "node_modules", "@zedtest");
+  fs.mkdirSync(scope, { recursive: true });
+  fs.symlinkSync(
+    path.join(staged, "packages", "core"),
+    path.join(scope, "ws-core"),
+    "dir",
+  );
+  fs.symlinkSync(
+    path.join(staged, "packages", "utils"),
+    path.join(scope, "ws-utils"),
+    "dir",
+  );
+
+  const result = runCli(staged);
+  assert.notEqual(result.status, 0);
+  assert.doesNotMatch(result.stderr, /Cannot find module '@zedtest\/ws-utils'/);
+  assert.match(result.stderr, /Cannot find module '@zedtest\/ws-core'/);
+});
+
 test("workspace CLI output is deterministic across fresh processes", (t) => {
   const staged = stageWorkspace();
   t.after(() => fs.rmSync(staged, { recursive: true, force: true }));
