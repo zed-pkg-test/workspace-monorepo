@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
       - name: Check out this repo
@@ -94,11 +94,14 @@ jobs:
           set -euo pipefail
           ZED="$GITHUB_WORKSPACE/zed-cli/target/release/zed"
           echo "ZED=$ZED" >> "$GITHUB_ENV"
+          mkdir -p "$RUNNER_TEMP/empty-reg"
+          sha256sum .zpkg.toml > "$RUNNER_TEMP/workspace-manifest.sha256"
+
           # Deliberately an EMPTY registry: if anything resolves through it
           # rather than through the workspace, this step fails.
-          mkdir -p "$RUNNER_TEMP/empty-reg"
           "$ZED" install --registry "file://$RUNNER_TEMP/empty-reg" \
             --home "$RUNNER_TEMP/home" 2>&1 | tee "$RUNNER_TEMP/install.log"
+          sha256sum .zpkg.lock > "$RUNNER_TEMP/workspace-lock.sha256"
 
           # ws-cli depends on ws-utils only; ws-core arrives transitively.
           grep -q 'installed zedtest/ws-core@workspace' "$RUNNER_TEMP/install.log"
@@ -110,57 +113,143 @@ jobs:
           test -L zed_modules/zedtest/ws-utils
           test "$(readlink zed_modules/zedtest/ws-core)" \
              = "$GITHUB_WORKSPACE/workspace-monorepo/packages/core"
+          test "$(readlink zed_modules/zedtest/ws-utils)" \
+             = "$GITHUB_WORKSPACE/workspace-monorepo/packages/utils"
 
-      - name: KNOWN GAP - workspace members get no wiring and no paths entry
+      - name: Workspace adapters emit package paths and consumer-local Node links
         working-directory: workspace-monorepo/apps/cli
         shell: bash
         run: |
           set -euo pipefail
-          # Characterization, not endorsement. A registry install writes
-          # node_modules/@org/name links plus .zed/node_path; a workspace install
-          # writes neither, and paths.json comes back empty -- so a Node consumer
-          # inside a workspace cannot import what was just installed.
-          #
-          # When this is fixed, THIS STEP SHOULD FAIL. Update the fixture then;
-          # do not delete the check.
           python3 - <<'PY'
           import json
           from pathlib import Path
 
-          index = json.loads(Path(".zed/paths.json").read_text())
-          assert index["packages"] == [], (
-              f"paths.json now records {len(index['packages'])} package(s) -- "
-              "the gap is fixed; update this fixture to assert the real entries"
-          )
+          index = json.loads(Path(".zed/paths.json").read_text(encoding="utf-8"))
+          assert index["modules_dir"] == "zed_modules", index
+          actual = {
+              entry["package"]: (entry["version"], entry["path"])
+              for entry in index["packages"]
+          }
+          assert actual == {
+              "zedtest/ws-core": ("workspace", "zed_modules/zedtest/ws-core"),
+              "zedtest/ws-utils": ("workspace", "zed_modules/zedtest/ws-utils"),
+          }, actual
+          assert Path(".zed/node_path").read_text(encoding="utf-8").strip() == "zed_modules"
           PY
-          test ! -e .zed/node_path
-          test ! -e node_modules/@zedtest/ws-utils
-          if node bin/cli.js > "$RUNNER_TEMP/unwired.log" 2>&1; then
-            echo "::error::the member resolved without wiring; the gap is fixed"
+
+          test -L node_modules/@zedtest/ws-core
+          test -L node_modules/@zedtest/ws-utils
+          test "$(readlink node_modules/@zedtest/ws-core)" \
+             = "$GITHUB_WORKSPACE/workspace-monorepo/packages/core"
+          test "$(readlink node_modules/@zedtest/ws-utils)" \
+             = "$GITHUB_WORKSPACE/workspace-monorepo/packages/utils"
+
+      - name: REMAINING GAP - transitive Node lookup follows the member realpath
+        working-directory: workspace-monorepo/apps/cli
+        shell: bash
+        run: |
+          set -euo pipefail
+          # The adapter now emits consumer-local Node links and paths.json, but
+          # Node resolves ws-utils through its real path under packages/utils.
+          # Its transitive ws-core import therefore searches upward from the
+          # workspace member and still requires workspace-root wiring.
+          #
+          # When root-aware wiring lands, THIS STEP SHOULD FAIL so the fixture
+          # is updated to assert the zero-touch success path instead.
+          if node bin/cli.js > "$RUNNER_TEMP/consumer-local.log" 2>&1; then
+            echo "::error::transitive workspace Node wiring now resolves without root hoisting"
             exit 1
           fi
-          grep -q "Cannot find module '@zedtest/ws-utils'" "$RUNNER_TEMP/unwired.log"
+          grep -q "Cannot find module '@zedtest/ws-core'" "$RUNNER_TEMP/consumer-local.log"
+          if grep -q "Cannot find module '@zedtest/ws-utils'" "$RUNNER_TEMP/consumer-local.log"; then
+            echo "::error::the direct consumer-local ws-utils link did not resolve"
+            exit 1
+          fi
 
-      - name: With wiring hoisted to the workspace root, the chain resolves
+      - name: Uninstall removes all workspace projections and retains authority files
+        working-directory: workspace-monorepo/apps/cli
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$ZED" uninstall --registry "file://$RUNNER_TEMP/empty-reg" \
+            --home "$RUNNER_TEMP/home" 2>&1 | tee "$RUNNER_TEMP/uninstall.log"
+
+          grep -q 'uninstalled zedtest/ws-core' "$RUNNER_TEMP/uninstall.log"
+          grep -q 'uninstalled zedtest/ws-utils' "$RUNNER_TEMP/uninstall.log"
+          grep -q '0 package(s) remain materialized' "$RUNNER_TEMP/uninstall.log"
+          sha256sum --check "$RUNNER_TEMP/workspace-manifest.sha256"
+          sha256sum --check "$RUNNER_TEMP/workspace-lock.sha256"
+
+          test ! -e zed_modules
+          test ! -e node_modules/@zedtest/ws-core
+          test ! -e node_modules/@zedtest/ws-utils
+          test ! -e .zed/paths.json
+          test ! -e .zed/node_path
+
+          if node bin/cli.js > "$RUNNER_TEMP/uninstalled.log" 2>&1; then
+            echo "::error::workspace CLI still resolved after full uninstall"
+            exit 1
+          fi
+          grep -q "Cannot find module '@zedtest/ws-utils'" "$RUNNER_TEMP/uninstalled.log"
+
+      - name: Frozen reinstall restores the exact workspace graph and adapters
+        working-directory: workspace-monorepo/apps/cli
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$ZED" install --frozen --registry "file://$RUNNER_TEMP/empty-reg" \
+            --home "$RUNNER_TEMP/home" 2>&1 | tee "$RUNNER_TEMP/frozen-restore.log"
+
+          grep -q 'installed zedtest/ws-core@workspace' "$RUNNER_TEMP/frozen-restore.log"
+          grep -q 'installed zedtest/ws-utils@workspace' "$RUNNER_TEMP/frozen-restore.log"
+          sha256sum --check "$RUNNER_TEMP/workspace-manifest.sha256"
+          sha256sum --check "$RUNNER_TEMP/workspace-lock.sha256"
+
+          test -L zed_modules/zedtest/ws-core
+          test -L zed_modules/zedtest/ws-utils
+          test -L node_modules/@zedtest/ws-core
+          test -L node_modules/@zedtest/ws-utils
+          test "$(cat .zed/node_path)" = "zed_modules"
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          index = json.loads(Path(".zed/paths.json").read_text(encoding="utf-8"))
+          assert {entry["package"] for entry in index["packages"]} == {
+              "zedtest/ws-core",
+              "zedtest/ws-utils",
+          }, index
+          assert all(entry["version"] == "workspace" for entry in index["packages"])
+          PY
+
+          if node bin/cli.js > "$RUNNER_TEMP/frozen-consumer-local.log" 2>&1; then
+            echo "::error::root-aware Node wiring landed; update the remaining-gap assertion"
+            exit 1
+          fi
+          grep -q "Cannot find module '@zedtest/ws-core'" \
+            "$RUNNER_TEMP/frozen-consumer-local.log"
+
+      - name: Workspace-root Node wiring completes the two-hop chain
         working-directory: workspace-monorepo
         shell: bash
         run: |
           set -euo pipefail
-          # The wiring zed omits, added by hand -- at the ROOT, because Node
-          # resolves from a symlink's realpath and therefore searches upward from
-          # packages/utils/, never from apps/cli/. This is what a fixed adapter
-          # has to emit.
+          # Root hoisting is the remaining adapter requirement because Node
+          # searches upward from the symlinked member's real path.
           mkdir -p node_modules/@zedtest
           ln -sfn ../../packages/core node_modules/@zedtest/ws-core
           ln -sfn ../../packages/utils node_modules/@zedtest/ws-utils
-          node apps/cli/bin/cli.js | tee "$RUNNER_TEMP/wired.log"
-          grep -q 'OK: member -> member -> member resolved by path' "$RUNNER_TEMP/wired.log"
+          node apps/cli/bin/cli.js | tee "$RUNNER_TEMP/root-wired.log"
+          grep -q 'OK: member -> member -> member resolved by path' \
+            "$RUNNER_TEMP/root-wired.log"
 
       - name: Upload install diagnostics
         if: ${{ always() }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: workspace-install-logs
           path: ${{ runner.temp }}/*.log
           if-no-files-found: warn
           retention-days: 7
+          include-hidden-files: false
