@@ -1,0 +1,48 @@
+[submodule "mb-cli"]
+	path = apps/mb-cli
+	url = https://github.com/memebank/mb-cli.git
+	branch = main
+[submodule "mb-clients"]
+	path = apps/mb-clients
+	url = https://github.com/memebank/mb-clients.git
+	branch = main
+[submodule "mb-infra"]
+	path = apps/mb-infra
+	url = https://github.com/memebank/mb-infra.git
+	branch = main
+[submodule "mb-interfaces"]
+	path = apps/mb-interfaces
+	url = https://github.com/memebank/mb-interfaces.git
+	branch = main
+[submodule "mbk-desktop.rs"]
+	path = apps/mbk-desktop.rs
+	url = https://github.com/memebank/mbk-desktop.rs.git
+	branch = main
+[submodule "mbk-flutter"]
+	path = apps/mbk-flutter
+	url = https://github.com/memebank/mbk-flutter.git
+	branch = main
+[submodule "memebank-api-server.rs"]
+	path = apps/memebank-api-server.rs
+	url = https://github.com/memebank/memebank-api-server.rs.git
+	branch = main
+[submodule "memebank-e2e"]
+	path = apps/memebank-e2e
+	url = https://github.com/memebank/memebank-e2e.git
+	branch = main
+[submodule "memebank-media-worker.rs"]
+	path = apps/memebank-media-worker.rs
+	url = https://github.com/memebank/memebank-media-worker.rs.git
+	branch = main
+[submodule "memebank-mcp-server.rs"]
+	path = apps/memebank-mcp-server.rs
+	url = https://github.com/memebank/memebank-mcp-server.rs.git
+	branch = main
+[submodule "memebank-web-server.rs"]
+	path = apps/memebank-web-server.rs
+	url = https://github.com/memebank/memebank-web-server.rs.git
+	branch = main
+[submodule "memebank.github.io"]
+	path = apps/memebank.github.io
+	url = https://github.com/memebank/memebank.github.io.git
+	branch = main
