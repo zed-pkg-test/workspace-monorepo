@@ -1,0 +1,28 @@
+[submodule "apps/billing-server.rs"]
+	path = apps/billing-server.rs
+	url = git@github.com:quaestor-ledger/quaestor-ledger-server.rs.git
+	branch = main
+[submodule "apps/quaestor-ledger-mcp-server.rs"]
+	path = apps/quaestor-ledger-mcp-server.rs
+	url = git@github.com:quaestor-ledger/quaestor-ledger-mcp-server.rs.git
+	branch = main
+[submodule "apps/quaestor-web-server.rs"]
+	path = apps/quaestor-web-server.rs
+	url = git@github.com:quaestor-ledger/quaestor-web-server.rs.git
+	branch = main
+[submodule "apps/quaestor-infra"]
+	path = apps/quaestor-infra
+	url = git@github.com:quaestor-ledger/quaestor-infra.git
+	branch = main
+[submodule "apps/quaestor-clients"]
+	path = apps/quaestor-clients
+	url = git@github.com:quaestor-ledger/quaestor-clients.git
+	branch = main
+[submodule "apps/quaestor-interfaces"]
+	path = apps/quaestor-interfaces
+	url = git@github.com:quaestor-ledger/quaestor-interfaces.git
+	branch = main
+[submodule "apps/quaestor-flutter"]
+	path = apps/quaestor-flutter
+	url = git@github.com:quaestor-ledger/quaestor-flutter.git
+	branch = main
