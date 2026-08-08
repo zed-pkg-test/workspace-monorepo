@@ -1,0 +1,46 @@
+name: repository boundary
+
+on:
+  pull_request:
+    paths:
+      - ".gitmodules"
+      - "tools/check_infra_submodules.py"
+      - "tests/test_repository_boundary.py"
+      - "tests/fixtures/**"
+      - ".github/workflows/repository-boundary.yml"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: repository-boundary-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  infra-is-not-an-app-submodule:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          show-progress: false
+
+      - name: Enforce the live repository boundary
+        run: python3 tools/check_infra_submodules.py --json .gitmodules
+
+      - name: Exercise positive and negative policy fixtures
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: python3 -m unittest discover -s tests -p 'test_repository_boundary.py' -v
+
+      - name: Prove the guard leaves the checkout unchanged
+        run: |
+          set -euo pipefail
+          git diff --exit-code
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"

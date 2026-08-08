@@ -1,0 +1,36 @@
+[submodule "apps/fabrication-server.rs"]
+	path = apps/fabrication-server.rs
+	url = git@github.com:daedalus-fab/fabrication-server.rs.git
+	branch = main
+[submodule "apps/daedalus-api-server.rs"]
+	path = apps/daedalus-api-server.rs
+	url = git@github.com:daedalus-fab/daedalus-api-server.rs.git
+	branch = main
+[submodule "apps/daedalus-web-server.rs"]
+	path = apps/daedalus-web-server.rs
+	url = git@github.com:daedalus-fab/daedalus-web-server.rs.git
+	branch = main
+[submodule "apps/daedalus-infra"]
+	path = apps/daedalus-infra
+	url = git@github.com:daedalus-fab/daedalus-infra.git
+	branch = main
+[submodule "apps/daedalus-clients"]
+	path = apps/daedalus-clients
+	url = git@github.com:daedalus-fab/daedalus-clients.git
+	branch = main
+[submodule "apps/daedalus-interfaces"]
+	path = apps/daedalus-interfaces
+	url = git@github.com:daedalus-fab/daedalus-interfaces.git
+	branch = main
+[submodule "apps/daedalus-ui.dart"]
+	path = apps/daedalus-ui.dart
+	url = git@github.com:daedalus-fab/daedalus-ui.dart.git
+	branch = main
+[submodule "apps/daedalus-fab-mcp-server.rs"]
+	path = apps/daedalus-fab-mcp-server.rs
+	url = git@github.com:daedalus-fab/daedalus-fab-mcp-server.rs.git
+	branch = main
+[submodule "apps/daedalus-sync"]
+	path = apps/daedalus-sync
+	url = git@github.com:daedalus-fab/daedalus-sync.git
+	branch = main
