@@ -1,0 +1,36 @@
+[submodule "apps/athleto-backend.rs"]
+	path = apps/athleto-backend.rs
+	url = git@github.com:athlet-o/athleto-backend.rs.git
+	branch = main
+[submodule "apps/athleto-app-rs"]
+	path = apps/athleto-app-rs
+	url = git@github.com:athlet-o/athleto-app-rs.git
+	branch = main
+[submodule "apps/athleto-infra"]
+	path = apps/athleto-infra
+	url = git@github.com:athlet-o/athleto-infra.git
+	branch = main
+[submodule "apps/athleto-mcp-server.rs"]
+	path = apps/athleto-mcp-server.rs
+	url = git@github.com:athlet-o/athleto-mcp-server.rs.git
+	branch = main
+[submodule "apps/athleto-sync"]
+	path = apps/athleto-sync
+	url = git@github.com:athlet-o/athleto-sync.git
+	branch = main
+[submodule "apps/athleto-clients"]
+	path = apps/athleto-clients
+	url = git@github.com:athlet-o/athleto-clients.git
+	branch = main
+[submodule "apps/athleto-interfaces"]
+	path = apps/athleto-interfaces
+	url = git@github.com:athlet-o/athleto-interfaces.git
+	branch = main
+[submodule "apps/athleto-ui.dart"]
+	path = apps/athleto-ui.dart
+	url = git@github.com:athlet-o/athleto-ui.dart.git
+	branch = main
+[submodule "apps/athleto-e2e"]
+	path = apps/athleto-e2e
+	url = git@github.com:athlet-o/athleto-e2e.git
+	branch = main
