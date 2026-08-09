@@ -1,0 +1,44 @@
+[submodule "apps/msgint-chrome-extension-app"]
+	path = apps/msgint-chrome-extension-app
+	url = https://github.com/messaging-intel/msgint-chrome-extension-app.git
+	branch = main
+[submodule "apps/msgint-flutter-app"]
+	path = apps/msgint-flutter-app
+	url = https://github.com/messaging-intel/msgint-flutter-app.git
+	branch = main
+[submodule "apps/msgint-web-server.rs"]
+	path = apps/msgint-web-server.rs
+	url = https://github.com/messaging-intel/msgint-web-server.rs.git
+	branch = main
+[submodule "apps/msgint-api-server.rs"]
+	path = apps/msgint-api-server.rs
+	url = https://github.com/messaging-intel/msgint-api-server.rs.git
+	branch = main
+[submodule "apps/msgint-interfaces"]
+	path = apps/msgint-interfaces
+	url = https://github.com/messaging-intel/msgint-interfaces.git
+	branch = main
+[submodule "apps/msgint-clients"]
+	path = apps/msgint-clients
+	url = https://github.com/messaging-intel/msgint-clients.git
+	branch = main
+[submodule "apps/msgint-e2e"]
+	path = apps/msgint-e2e
+	url = https://github.com/messaging-intel/msgint-e2e.git
+	branch = main
+[submodule "apps/msgint-connectors"]
+	path = apps/msgint-connectors
+	url = https://github.com/messaging-intel/msgint-connectors.git
+	branch = main
+[submodule "apps/msgint-analytics"]
+	path = apps/msgint-analytics
+	url = https://github.com/messaging-intel/msgint-analytics.git
+	branch = main
+[submodule "apps/msgint-mcp-server.rs"]
+	path = apps/msgint-mcp-server.rs
+	url = https://github.com/messaging-intel/msgint-mcp-server.rs.git
+	branch = main
+[submodule "apps/msgint-sync"]
+	path = apps/msgint-sync
+	url = https://github.com/messaging-intel/msgint-sync.git
+	branch = main

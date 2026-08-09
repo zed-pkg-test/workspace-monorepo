@@ -1,0 +1,28 @@
+[submodule "apps/laser-ptr-ctrl-server.rs"]
+	path = apps/laser-ptr-ctrl-server.rs
+	url = https://github.com/drone-mngr/laser-ptr-ctrl-server.rs.git
+	branch = main
+[submodule "apps/laser-ptr-ctrl-web-server.rs"]
+	path = apps/laser-ptr-ctrl-web-server.rs
+	url = https://github.com/drone-mngr/laser-ptr-ctrl-web-server.rs.git
+	branch = main
+[submodule "apps/laser-ptr-ctrl-embedded.rs"]
+	path = apps/laser-ptr-ctrl-embedded.rs
+	url = https://github.com/drone-mngr/laser-ptr-ctrl-embedded.rs.git
+	branch = main
+[submodule "apps/laser-ptr-ctrl-embedded.c"]
+	path = apps/laser-ptr-ctrl-embedded.c
+	url = https://github.com/drone-mngr/laser-ptr-ctrl-embedded.c.git
+	branch = main
+[submodule "apps/laser-ptr-ctrl-infra"]
+	path = apps/laser-ptr-ctrl-infra
+	url = https://github.com/drone-mngr/laser-ptr-ctrl-infra.git
+	branch = main
+[submodule "tools/flags-2-env"]
+	path = tools/flags-2-env
+	url = https://github.com/ORESoftware/flags-2-env.git
+	branch = main
+[submodule "apps/laser-ptr-ctrl-mcp-server.rs"]
+	path = apps/laser-ptr-ctrl-mcp-server.rs
+	url = https://github.com/drone-mngr/laser-ptr-ctrl-mcp-server.rs.git
+	branch = main
