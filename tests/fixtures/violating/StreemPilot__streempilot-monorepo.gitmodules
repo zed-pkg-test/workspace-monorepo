@@ -1,0 +1,30 @@
+[submodule "apps/streempilot-interfaces"]
+	path = apps/streempilot-interfaces
+	url = https://github.com/StreemPilot/streempilot-interfaces.git
+[submodule "apps/streempilot-api-server.rs"]
+	path = apps/streempilot-api-server.rs
+	url = https://github.com/StreemPilot/streempilot-api-server.rs.git
+[submodule "apps/streempilot-web-server.rs"]
+	path = apps/streempilot-web-server.rs
+	url = https://github.com/StreemPilot/streempilot-web-server.rs.git
+[submodule "apps/streempilot-flutter-app"]
+	path = apps/streempilot-flutter-app
+	url = https://github.com/StreemPilot/streempilot-flutter-app.git
+[submodule "apps/streempilot-cli"]
+	path = apps/streempilot-cli
+	url = https://github.com/StreemPilot/streempilot-cli.git
+[submodule "apps/streempilot-clients"]
+	path = apps/streempilot-clients
+	url = https://github.com/StreemPilot/streempilot-clients.git
+[submodule "apps/streempilot-sync"]
+	path = apps/streempilot-sync
+	url = https://github.com/StreemPilot/streempilot-sync.git
+[submodule "apps/streempilot-e2e"]
+	path = apps/streempilot-e2e
+	url = https://github.com/StreemPilot/streempilot-e2e.git
+[submodule "apps/streempilot-mcp-server.rs"]
+	path = apps/streempilot-mcp-server.rs
+	url = https://github.com/StreemPilot/streempilot-mcp-server.rs.git
+[submodule "apps/streempilot-infra"]
+	path = apps/streempilot-infra
+	url = https://github.com/StreemPilot/streempilot-infra.git

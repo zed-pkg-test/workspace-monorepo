@@ -1,0 +1,30 @@
+[submodule "apps/hypesiege-interfaces"]
+	path = apps/hypesiege-interfaces
+	url = https://github.com/hypesiege/hypesiege-interfaces.git
+[submodule "apps/hypesiege-api-server.rs"]
+	path = apps/hypesiege-api-server.rs
+	url = https://github.com/hypesiege/hypesiege-api-server.rs.git
+[submodule "apps/hypesiege-web-server.rs"]
+	path = apps/hypesiege-web-server.rs
+	url = https://github.com/hypesiege/hypesiege-web-server.rs.git
+[submodule "apps/hypesiege-flutter-app"]
+	path = apps/hypesiege-flutter-app
+	url = https://github.com/hypesiege/hypesiege-flutter-app.git
+[submodule "apps/hypesiege-cli"]
+	path = apps/hypesiege-cli
+	url = https://github.com/hypesiege/hypesiege-cli.git
+[submodule "apps/hypesiege-clients"]
+	path = apps/hypesiege-clients
+	url = https://github.com/hypesiege/hypesiege-clients.git
+[submodule "apps/hypesiege-sync"]
+	path = apps/hypesiege-sync
+	url = https://github.com/hypesiege/hypesiege-sync.git
+[submodule "apps/hypesiege-e2e"]
+	path = apps/hypesiege-e2e
+	url = https://github.com/hypesiege/hypesiege-e2e.git
+[submodule "apps/hypesiege-mcp-server.rs"]
+	path = apps/hypesiege-mcp-server.rs
+	url = https://github.com/hypesiege/hypesiege-mcp-server.rs.git
+[submodule "apps/hypesiege-infra"]
+	path = apps/hypesiege-infra
+	url = https://github.com/hypesiege/hypesiege-infra.git
