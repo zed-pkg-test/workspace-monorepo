@@ -1,6 +1,8 @@
 .zed/
 zed_modules/
 node_modules/
+__pycache__/
+*.py[cod]
 .zpkg.lock
 tmp
 temp
